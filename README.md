@@ -31,7 +31,7 @@ A Tampermonkey userscript that adds **quick text snippet buttons** to the ChatGP
 Two icons are added to the top-right corner:
 **“Add Quick Text”** (✎) and **“Settings”** (⚙️).
 
-![Main toolbar (Quick Text & Settings buttons)](docs/cqtb_001.png)
+![Main toolbar (Quick Text & Settings buttons)](/docs/cqtb_001.png)
 
 ---
 
@@ -40,7 +40,7 @@ Two icons are added to the top-right corner:
 Hover over the ✎ icon to show a list of registered text snippets.
 Click a snippet button to instantly append that text to the chat input field.
 
-![Selecting and inserting a snippet](docs/cqtb_002.png)
+![Selecting and inserting a snippet](/docs/cqtb_002.png)
 
 ---
 
@@ -49,7 +49,7 @@ Click a snippet button to instantly append that text to the chat input field.
 The selected text will be added to the end of the input box.
 You can edit or send as usual.
 
-![Text inserted in the input box](docs/cqtb_003.png)
+![Text inserted in the input box](/docs/cqtb_003.png)
 
 ---
 
@@ -58,7 +58,7 @@ You can edit or send as usual.
 Click the ⚙️ icon to open a settings window where you can edit snippet definitions in JSON format.
 Use the sample definitions as a template and customize for your own needs.
 
-![Settings: edit definitions in JSON format](docs/cqtb_004.png)
+![Settings: edit definitions in JSON format](/docs/cqtb_004.png)
 
 ---
 
@@ -93,7 +93,7 @@ Sample snippet files (`sample_texts_en.json` and `sample_texts_ja.json`) are inc
 Copy & paste contents into the settings window as needed.
 
 The JSON structure is simple—see below for a template.
-Refer to the [`samples`](samples) directory for ready-to-use examples.
+Refer to the [`samples`](/samples) directory for ready-to-use examples.
 
 ```json
 {
