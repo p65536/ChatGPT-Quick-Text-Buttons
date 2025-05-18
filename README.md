@@ -1,4 +1,9 @@
 # ChatGPT Quick Text Buttons
+![license](https://img.shields.io/badge/license-MIT-green)
+![userscript](https://img.shields.io/badge/userscript-Tampermonkey-blueviolet)
+![platform](https://img.shields.io/badge/platform-ChatGPT-lightgrey)
+![topic](https://img.shields.io/badge/topic-quick_insert-fcc203)
+![topic](https://img.shields.io/badge/topic-productivity-40c057)
 
 [日本語READMEはこちら](./README_ja.md)
 
