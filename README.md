@@ -5,6 +5,8 @@
 ![topic](https://img.shields.io/badge/topic-quick_insert-fcc203)
 ![topic](https://img.shields.io/badge/topic-productivity-40c057)
 
+[![Download](https://img.shields.io/badge/Download-ChatGPT_Quick_Text_Buttons.user.js-blue?style=flat-square&logo=download)](https://github.com/p65536/ChatGPT-Quick-Text-Buttons/raw/main/ChatGPT%20Quick%20Text%20Buttons.user.js)
+
 [日本語READMEはこちら](./README_ja.md)
 
 ---
