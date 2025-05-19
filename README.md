@@ -74,7 +74,7 @@ Use the sample definitions as a template and customize for your own needs.
 
 ---
 
-## Updating
+## How to update
 
 1. Open the script in the Tampermonkey dashboard
 2. Replace all contents with the latest [`ChatGPT Quick Text Buttons.user.js`](./ChatGPT%20Quick%20Text%20Buttons.user.js)
