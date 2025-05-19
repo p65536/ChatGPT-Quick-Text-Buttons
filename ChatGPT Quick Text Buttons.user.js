@@ -96,141 +96,157 @@
     // --- CSS for all UI components (ChatGPT Theme Color) ---
     const style = createEl('style', {
         textContent: `
-        #ftb-id-insert-btn, #ftb-id-settings-btn {
-          position: fixed;
-          top: 10px;
-          width: 32px; height: 32px;
-          border-radius: 4px;
-          font-size: 16px;
-          cursor: pointer;
-          z-index: 20000;
-          background: var(--interactive-bg-secondary-default, #202123) !important;
-          color: var(--interactive-label-secondary-default, #ececf1) !important;
-          border: 1px solid var(--interactive-border-secondary-default, #cccccc) !important;
-        }
-        #ftb-id-insert-btn { right: 400px; }
-        #ftb-id-settings-btn { right: 360px; }
-        #ftb-id-insert-btn:hover, #ftb-id-settings-btn:hover { background: var(--btn-hover-bg); }
+          #ftb-id-insert-btn, #ftb-id-settings-btn {
+            position: fixed;
+            top: 10px;
+            z-index: 20000;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md, 4px);
+            font-size: 16px;
+            font-family: inherit;
+            background: var(--interactive-bg-secondary-default) !important;
+            color: var(--interactive-label-secondary-default) !important;
+            border: 1px solid var(--interactive-border-secondary-default) !important;
+            cursor: pointer;
+            transition: background 0.15s;
+          }
+          #ftb-id-insert-btn { right: 400px; }
+          #ftb-id-settings-btn { right: 360px; }
+          #ftb-id-insert-btn:hover,
+          #ftb-id-settings-btn:hover {
+            background: var(--interactive-bg-secondary-hover) !important;
+          }
 
-        #ftb-id-text-list {
-          position: absolute;
-          left: -9999px;
-          top: 0;
-          min-width: ${textListWidth}px;
-          max-width: ${textListWidth}px;
-          width: ${textListWidth}px;
-          border-radius: 4px;
-          padding: 8px;
-          z-index: 20001;
-          display: none;
-          background: var(--main-surface-primary, #fff) !important;
-          color: var(--text-primary, #222) !important;
-          border: 1px solid var(--border-light, #cccccc) !important;
-          box-shadow: 0 2px 8px var(--border-default, #3333);
-        }
-        #ftb-id-category-tabs { display: flex; margin-bottom: 5px; }
-        .ftb-category-tab {
-          flex: 1 1 0;
-          min-width: 0;
-          max-width: 90px;
-          width: 80px;
-          text-align: center;
-          padding: 4px 0;
-          margin-right: 4px;
-          cursor: pointer;
-          border-radius: 4px;
-          font-size: 12px;
-          transition: background 0.15s;
-          background: var(--interactive-bg-tertiary-default, #fff) !important;
-          color: var(--text-primary, #222) !important;
-          border: 1px solid var(--border-light, #cccccc) !important;
-        }
-        .ftb-category-tab:last-child { margin-right: 0; }
-        .ftb-category-tab.active {
-          background: var(--interactive-bg-tertiary-hover, #f9f9f9) !important;
-          border-color: var(--border-default, #888) !important;
-          outline: 2px solid var(--border-default, #888);
-         }
-        #ftb-id-category-separator {
-          height: 1px;
-          background: var(--border-default, #cccccc) !important;
-          margin: 4px 0;
-        }
-        .ftb-text-option {
-          display: block;
-          width: 100%;
-          min-width: 0;
-          margin: 4px 0;
-          padding: 4px;
-          text-align: left;
-          cursor: pointer;
-          font-size: 13px;
-          white-space: pre-wrap;
-          overflow-wrap: break-word;
-          word-break: break-word;
-          background: var(--interactive-bg-tertiary-default, #fff) !important;
-          color: var(--text-primary, #222) !important;
-          border: 1px solid var(--border-default, #cccccc) !important;
-          border-radius: 5px;
-        }
-        .ftb-text-option:hover,
-        .ftb-text-option:focus {
-          background: var(--interactive-bg-tertiary-hover, #f9f9f9) !important;
-          border-color: var(--border-default, #888) !important;
-          outline: 2px solid var(--border-default, #888);
-        }
+          #ftb-id-text-list {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            z-index: 20001;
+            display: none;
+            min-width: ${textListWidth}px;
+            max-width: ${textListWidth}px;
+            width: ${textListWidth}px;
+            padding: 8px;
+            border-radius: var(--radius-md, 4px);
+            background: var(--main-surface-primary) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-light) !important;
+            box-shadow: var(--drop-shadow-md, 0 3px 3px #0000001f);
+          }
 
-        #ftb-id-modal-overlay {
-          position: absolute;
-          top: 0; left: 0;
-          width: 100vw; height: 100vh;
-          background: none;
-          display: none;
-          pointer-events: none;
-          z-index: 9999;
-        }
-        #ftb-id-modal-box {
-          position: absolute;
-          width: ${modalBoxWidth}px;
-          padding: 16px;
-          border-radius: 8px;
-          z-index: 2147483648;
-          pointer-events: auto;
-          background: var(--main-surface-primary, #fff) !important;
-          color: var(--text-primary, #222) !important;
-          border: 1px solid var(--border-default, #888) !important;
-          box-shadow: 0 4px 16px var(--border-default, #3336);
-        }
-        #ftb-id-modal-box textarea {
-          width: 100%;
-          height: 200px;
-          box-sizing: border-box;
-          font-family: monospace;
-          font-size: 13px;
-          border: 1px solid var(--border-default, #cccccc) !important;
-          background: var(--bg-primary, #fff) !important;
-          color: var(--text-primary, #222) !important;
-        }
-        .ftb-btn-group {
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-        }
-        .ftb-btn-group button {
-          background: var(--interactive-bg-tertiary-default, #fff) !important;
-          color: var(--text-primary, #222) !important;
-          border: 1px solid var(--border-default, #cccccc) !important;
-          border-radius: 5px;
-          padding: 5px 16px;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.12s;
-        }
-        .ftb-btn-group button:hover {
-          background: var(--interactive-bg-tertiary-hover, #f9f9f9) !important;
-          border-color: var(--border-default, #888) !important;
-        }
-      `
+          #ftb-id-category-tabs {
+            display: flex;
+            margin-bottom: 5px;
+          }
+          .ftb-category-tab {
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 90px;
+            width: 80px;
+            margin-right: 4px;
+            padding: 4px 0;
+            border-radius: var(--radius-md, 4px);
+            font-size: 12px;
+            font-family: inherit;
+            text-align: center;
+            background: var(--interactive-bg-tertiary-default) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-light) !important;
+            cursor: pointer;
+            transition: background 0.15s;
+          }
+          .ftb-category-tab.active {
+            background: var(--interactive-bg-tertiary-hover) !important;
+            border-color: var(--border-default) !important;
+            outline: 2px solid var(--border-default);
+          }
+
+          #ftb-id-category-separator {
+            height: 1px;
+            margin: 4px 0;
+            background: var(--border-default) !important;
+          }
+
+          .ftb-text-option {
+            display: block;
+            width: 100%;
+            min-width: 0;
+            margin: 4px 0;
+            padding: 4px;
+            border-radius: var(--radius-md, 5px);
+            font-size: 13px;
+            font-family: inherit;
+            text-align: left;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            background: var(--interactive-bg-tertiary-default) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-default) !important;
+            cursor: pointer;
+          }
+          .ftb-text-option:hover,
+          .ftb-text-option:focus {
+            background: var(--interactive-bg-tertiary-hover) !important;
+            border-color: var(--border-default) !important;
+            outline: 2px solid var(--border-default);
+          }
+
+          #ftb-id-modal-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 9999;
+            background: none;
+            display: none;
+            pointer-events: none;
+          }
+
+          #ftb-id-modal-box {
+            position: absolute;
+            width: ${modalBoxWidth}px;
+            padding: 16px;
+            border-radius: var(--radius-lg, 8px);
+            z-index: 2147483648;
+            pointer-events: auto;
+            background: var(--main-surface-primary) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-default) !important;
+            box-shadow: var(--drop-shadow-lg, 0 4px 16px #00000026);
+          }
+
+          #ftb-id-modal-box textarea {
+            width: 100%;
+            height: 200px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 13px;
+            border: 1px solid var(--border-default) !important;
+            background: var(--bg-primary) !important;
+            color: var(--text-primary) !important;
+          }
+
+          .ftb-btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+          }
+          .ftb-btn-group button {
+            background: var(--interactive-bg-tertiary-default) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-default) !important;
+            border-radius: var(--radius-md, 5px);
+            padding: 5px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.12s;
+          }
+          .ftb-btn-group button:hover {
+            background: var(--interactive-bg-tertiary-hover) !important;
+            border-color: var(--border-default) !important;
+          }
+       `
     });
     document.head.appendChild(style);
 
