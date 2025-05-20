@@ -21,7 +21,7 @@ A Tampermonkey userscript that adds **quick text snippet buttons** to the ChatGP
 
 * Instantly insert frequently used text snippets into the ChatGPT input field with a single click
 * Multiple sets of snippets by category (tabbed)
-* No dependencies (pure JavaScript; does **not** require jQuery)
+* Settings can be exported/imported
 * Easy customization with bundled sample JSON files (English & Japanese included)
 
 ---
@@ -33,7 +33,7 @@ A Tampermonkey userscript that adds **quick text snippet buttons** to the ChatGP
 Two icons are added to the top-right corner:
 **“Add Quick Text”** (✎) and **“Settings”** (⚙️).
 
-![Main toolbar (Quick Text & Settings buttons)](/docs/cqtb_001.png)
+![Main toolbar (Quick Text & Settings buttons)](./docs/cqtb_001.png)
 
 ---
 
@@ -42,7 +42,7 @@ Two icons are added to the top-right corner:
 Hover over the ✎ icon to show a list of registered text snippets.
 Click a snippet button to instantly append that text to the chat input field.
 
-![Selecting and inserting a snippet](/docs/cqtb_002.png)
+![Selecting and inserting a snippet](./docs/cqtb_002.png)
 
 ---
 
@@ -51,16 +51,17 @@ Click a snippet button to instantly append that text to the chat input field.
 The selected text will be added to the end of the input box.
 You can edit or send as usual.
 
-![Text inserted in the input box](/docs/cqtb_003.png)
+![Text inserted in the input box](./docs/cqtb_003.png)
 
 ---
 
 ### 4. Customize with the Settings Screen
 
 Click the ⚙️ icon to open a settings window where you can edit snippet definitions in JSON format.
-Use the sample definitions as a template and customize for your own needs.
+Use the sample definitions as a template and customize for your own needs.  
+You can import/export here.
 
-![Settings: edit definitions in JSON format](/docs/cqtb_004.png)
+![Settings: edit definitions in JSON format](./docs/cqtb_004.png)
 
 ---
 
@@ -75,6 +76,8 @@ Use the sample definitions as a template and customize for your own needs.
 ---
 
 ## How to update
+
+**Before updating, export your settings. (Just to be safe)**
 
 1. Open the script in the Tampermonkey dashboard
 2. Replace all contents with the latest [`ChatGPT Quick Text Buttons.user.js`](./ChatGPT%20Quick%20Text%20Buttons.user.js)
@@ -95,7 +98,7 @@ Sample snippet files (`sample_texts_en.json` and `sample_texts_ja.json`) are inc
 Copy & paste contents into the settings window as needed.
 
 The JSON structure is simple—see below for a template.
-Refer to the [`samples`](/samples) directory for ready-to-use examples.
+Refer to the [`samples`](./samples) directory for ready-to-use examples.
 
 ```json
 {
