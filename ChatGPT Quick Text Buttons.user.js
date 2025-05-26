@@ -13,29 +13,60 @@
 (() => {
     'use strict';
 
-    // --- Customize settings below! ---
-    const textListWidth = 500;
-    const textListAlign = "left"; // "center"|"left"|"custom"
-    const customPosition = { left: 300, top: 150 };
-    // --------------------------------
+    // =================================================================================
+    // SECTION: Constants
+    // =================================================================================
+    const CONSTANTS = {
+        TEXT_LIST_WIDTH: 500,
+        MODAL_WIDTH: 440,
+        MODAL_PADDING: 4,
+        MODAL_RADIUS: 8,
+        MODAL_BTN_RADIUS: 5,
+        MODAL_BTN_FONT_SIZE: 13,
+        MODAL_BTN_PADDING: '5px 16px',
+        MODAL_TITLE_MARGIN_BOTTOM: 8,
+        MODAL_BTN_GROUP_GAP: 8,
+        MODAL_TEXTAREA_HEIGHT: 200,
+        CONFIG_KEY: 'cqtb_config',
+        ID_PREFIX: 'cqtb-id-',
+        CLASS_CATEGORY_TAB: 'cqtb-category-tab',
+        CLASS_TEXT_OPTION: 'cqtb-text-option',
+        HIDE_DELAY_MS: 250,
+        SPA_REINIT_DELAY_MS: 1,
+        TEXT_LIST_RENDER_DELAY_MS: 1,
+        MODAL_ID: 'cqtb-modal',
+        CLASS_MODAL_BOX: 'cqtb-modal-box',
+        CLASS_MODAL_TITLE: 'cqtb-modal-title',
+        CLASS_MODAL_TEXTAREA: 'cqtb-modal-textarea',
+        CLASS_MODAL_MSG_DIV: 'cqtb-modal-msg-div',
+        CLASS_MODAL_BTN_GROUP: 'cqtb-modal-btn-group',
+        CLASS_MODAL_BUTTON: 'cqtb-modal-button',
+    };
 
-    // --- Common Settings for Modal Functions ---
-    const MODAL_WIDTH = 440;
-    const MODAL_PADDING = 4;
-    const MODAL_RADIUS = 8;
-    const MODAL_BTN_RADIUS = 5;
-    const MODAL_BTN_FONT_SIZE = 13;
-    const MODAL_BTN_PADDING = '5px 16px';
-    const MODAL_TITLE_MARGIN_BOTTOM = 8;
-    const MODAL_BTN_GROUP_GAP = 8;
-    const MODAL_TEXTAREA_HEIGHT = 200;
+    // =================================================================================
+    // SECTION: State Management
+    // =================================================================================
+    const state = {
+        fixedTextsConfig: null,
+        activeCategory: null,
+        ui: {
+            insertBtn: null,
+            settingsBtn: null,
+            textList: null,
+            categoryTabs: null,
+            categorySeparator: null,
+            textOptionsContainer: null,
+            styleElement: null,
+            settingsModalOverlay: null,
+        },
+        hideTimeoutId: null,
+        domObserver: null,
+    };
 
-    // DOM utilities
-    const $ = (sel, ctx = document) => ctx.querySelector(sel);
-    const createEl = (tag, props = {}) => Object.assign(document.createElement(tag), props);
-
-    // ---- Default Settings ----
-    const defaultFixedTexts = {
+    // =================================================================================
+    // SECTION: Default Configuration Data
+    // =================================================================================
+    const DEFAULT_FIXED_TEXTS = {
         "Test": [
             "[TEST MESSAGE] You can ignore this message.",
             "Tell me something interesting.",
@@ -67,299 +98,259 @@
         ]
     };
 
-    // ---- Common functions (load/save) ----
-    const CONFIG_KEY = 'cqtb_config';
+    // =================================================================================
+    // SECTION: DOM Utilities
+    // =================================================================================
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const createEl = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+
+    // =================================================================================
+    // SECTION: Configuration Load/Save
+    // =================================================================================
     async function loadConfig(key, defaultObj) {
         try {
             const raw = await GM_getValue(key);
-            return raw ? JSON.parse(raw) : {...defaultObj};
-        } catch {
-            return {...defaultObj};
+            if (raw) {
+                return JSON.parse(raw);
+            }
+            return JSON.parse(JSON.stringify(defaultObj));
+        } catch (e) {
+            console.error(`CQTB: Failed to load or parse config for key "${key}". Using default config. Error:`, e);
+            return JSON.parse(JSON.stringify(defaultObj));
         }
     }
+
     async function saveConfig(key, obj) {
-        await GM_setValue(key, JSON.stringify(obj));
+        try {
+            await GM_setValue(key, JSON.stringify(obj));
+        } catch (e) {
+            console.error(`CQTB: Failed to save config for key "${key}". Error:`, e);
+        }
     }
 
-    // ---- Cache settings ----
-    let FIXED_TEXTS_CONFIG = null;
-
-    // --- CSS for all UI components (ChatGPT Theme Color) ---
-    const style = createEl('style', {
-        textContent: `
-          #cqtb-id-insert-btn, #cqtb-id-settings-btn {
-            position: fixed;
-            top: 10px;
-            z-index: 20000;
-            width: 32px;
-            height: 32px;
-            border-radius: var(--radius-md, 4px);
-            font-size: 16px;
-            font-family: inherit;
-            background: var(--interactive-bg-secondary-default) !important;
-            color: var(--interactive-label-secondary-default) !important;
-            border: 1px solid var(--interactive-border-secondary-default) !important;
-            cursor: pointer;
-            transition: background 0.15s;
+    // =================================================================================
+    // SECTION: CSS Styling
+    // =================================================================================
+    function initializeAndApplyStyles() {
+        if (!state.ui.styleElement) {
+            state.ui.styleElement = createEl('style');
+            document.head.appendChild(state.ui.styleElement);
+        }
+        state.ui.styleElement.textContent = `
+          #${CONSTANTS.ID_PREFIX}insert-btn, #${CONSTANTS.ID_PREFIX}settings-btn {
+            position: fixed; top: 10px; z-index: 20000; width: 32px; height: 32px;
+            border-radius: var(--radius-md, 4px); font-size: 16px; font-family: inherit;
+            background: var(--interactive-bg-secondary-default);
+            color: var(--interactive-label-secondary-default);
+            border: 1px solid var(--interactive-border-secondary-default);
+            cursor: pointer; transition: background 0.15s;
           }
-          #cqtb-id-insert-btn { right: 400px; }
-          #cqtb-id-settings-btn { right: 360px; }
-          #cqtb-id-insert-btn:hover,
-          #cqtb-id-settings-btn:hover {
+          #${CONSTANTS.ID_PREFIX}insert-btn { right: 400px; }
+          #${CONSTANTS.ID_PREFIX}settings-btn { right: 360px; }
+          #${CONSTANTS.ID_PREFIX}insert-btn:hover,
+          #${CONSTANTS.ID_PREFIX}settings-btn:hover {
             background: var(--interactive-bg-secondary-hover) !important;
           }
-          #cqtb-id-text-list {
-            position: absolute;
-            left: -9999px;
-            top: 0;
-            z-index: 20001;
-            display: none;
-            min-width: ${textListWidth}px;
-            max-width: ${textListWidth}px;
-            width: ${textListWidth}px;
-            padding: 8px;
-            border-radius: var(--radius-md, 4px);
-            background: var(--main-surface-primary) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-light) !important;
+          #${CONSTANTS.ID_PREFIX}text-list {
+            position: fixed;
+            left: -9999px; top: 0; z-index: 20001; display: none;
+            min-width: ${CONSTANTS.TEXT_LIST_WIDTH}px; max-width: ${CONSTANTS.TEXT_LIST_WIDTH}px; width: ${CONSTANTS.TEXT_LIST_WIDTH}px;
+            padding: 8px; border-radius: var(--radius-md, 4px);
+            background: var(--main-surface-primary); color: var(--text-primary);
+            border: 1px solid var(--border-light);
             box-shadow: var(--drop-shadow-md, 0 3px 3px #0000001f);
           }
-          #cqtb-id-category-tabs {
-            display: flex;
-            margin-bottom: 5px;
+          #${CONSTANTS.ID_PREFIX}category-tabs { display: flex; margin-bottom: 5px; }
+          .${CONSTANTS.CLASS_CATEGORY_TAB} {
+            flex: 1 1 0; min-width: 0; max-width: 90px; width: 80px; margin-right: 4px;
+            padding: 4px 0; border-radius: var(--radius-md, 4px); font-size: 12px; font-family: inherit;
+            text-align: center; background: var(--interactive-bg-tertiary-default);
+            color: var(--text-primary); border: 1px solid var(--border-light);
+            cursor: pointer; transition: background 0.15s;
           }
-          .cqtb-category-tab {
-            flex: 1 1 0;
-            min-width: 0;
-            max-width: 90px;
-            width: 80px;
-            margin-right: 4px;
-            padding: 4px 0;
-            border-radius: var(--radius-md, 4px);
-            font-size: 12px;
-            font-family: inherit;
-            text-align: center;
-            background: var(--interactive-bg-tertiary-default) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-light) !important;
-            cursor: pointer;
-            overflow-x: auto;
-            transition: background 0.15s;
+          .${CONSTANTS.CLASS_CATEGORY_TAB}.active {
+            background: var(--interactive-bg-secondary-hover);
+            border-color: var(--border-default); outline: 2px solid var(--border-default);
           }
-          .cqtb-category-tab.active {
-            background: var(--interactive-bg-tertiary-hover) !important;
-            border-color: var(--border-default) !important;
-            outline: 2px solid var(--border-default);
-          }
-          #cqtb-id-category-separator {
-            height: 1px;
-            margin: 4px 0;
-            background: var(--border-default) !important;
-          }
-          .cqtb-text-option {
-            display: block;
-            width: 100%;
-            min-width: 0;
-            margin: 4px 0;
-            padding: 4px;
-            border-radius: var(--radius-md, 5px);
-            font-size: 13px;
-            font-family: inherit;
+          #${CONSTANTS.ID_PREFIX}category-separator { height: 1px; margin: 4px 0; background: var(--border-default); }
+          .${CONSTANTS.CLASS_TEXT_OPTION} {
+            display: block; width: 100%; min-width: 0; margin: 4px 0; padding: 4px;
+            border-radius: var(--radius-md, 5px); font-size: 13px; font-family: inherit;
             text-align: left;
-            white-space: pre-wrap;
-            overflow-wrap: break-word;
-            word-break: break-word;
-            background: var(--interactive-bg-tertiary-default) !important;
-            color: var(--text-primary) !important;
-            border: 1px solid var(--border-default) !important;
+            background: var(--interactive-bg-tertiary-default);
+            color: var(--text-primary); border: 1px solid var(--border-default);
             cursor: pointer;
           }
-          .cqtb-text-option:hover,
-          .cqtb-text-option:focus {
-            background: var(--interactive-bg-tertiary-hover) !important;
-            border-color: var(--border-default) !important;
-            outline: 2px solid var(--border-default);
+          .${CONSTANTS.CLASS_TEXT_OPTION}:hover,
+          .${CONSTANTS.CLASS_TEXT_OPTION}:focus {
+            background: var(--interactive-bg-secondary-hover) !important;
+            border-color: var(--border-default) !important; outline: 2px solid var(--border-default);
           }
-       `
-    });
-    document.head.appendChild(style);
 
-    // ---- UI elements ----
-    const insertBtn = createEl('button', {
-        id: 'cqtb-id-insert-btn', textContent: '✎', title: 'Add quick text', type: 'button'
-    });
-    const settingsBtn = createEl('button', {
-        id: 'cqtb-id-settings-btn', textContent: '⚙️', title: 'Settings (ChatGPT Quick Text Buttons)', type: 'button'
-    });
-    const textList = createEl('div', { id: 'cqtb-id-text-list' });
-    const categoryTabs = createEl('div', { id: 'cqtb-id-category-tabs' });
-    const categorySeparator = createEl('div', { id: 'cqtb-id-category-separator' });
-    const textOptions = createEl('div', { id: 'cqtb-id-text-options' });
-    textList.append(categoryTabs, categorySeparator, textOptions);
+          #${CONSTANTS.MODAL_ID} {
+            display: none; position: fixed; z-index: 2147483648; left: 0; top: 0;
+            width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); pointer-events: auto;
+          }
+          .${CONSTANTS.CLASS_MODAL_BOX} {
+            position: absolute; width: ${CONSTANTS.MODAL_WIDTH}px; padding: ${CONSTANTS.MODAL_PADDING}px;
+            border-radius: var(--radius-lg, ${CONSTANTS.MODAL_RADIUS}px); background: var(--main-surface-primary);
+            color: var(--text-primary); border: 1px solid var(--border-default);
+            box-shadow: var(--drop-shadow-lg, 0 4px 16px #00000026);
+          }
+          .${CONSTANTS.CLASS_MODAL_TITLE} {
+            margin-top: 0; margin-bottom: ${CONSTANTS.MODAL_TITLE_MARGIN_BOTTOM}px;
+          }
+          .${CONSTANTS.CLASS_MODAL_TEXTAREA} {
+            width: 100%; height: ${CONSTANTS.MODAL_TEXTAREA_HEIGHT}px; box-sizing: border-box;
+            font-family: monospace; font-size: 13px; margin-bottom: 0;
+            border: 1px solid var(--border-default); background: var(--bg-primary); color: var(--text-primary);
+          }
+          .${CONSTANTS.CLASS_MODAL_MSG_DIV} {
+            color: var(--text-danger,#f33); margin-top: 2px; min-height: 4px;
+          }
+          .${CONSTANTS.CLASS_MODAL_BTN_GROUP} {
+            display: flex; flex-wrap: wrap; justify-content: flex-end;
+            gap: ${CONSTANTS.MODAL_BTN_GROUP_GAP}px; margin-top: 8px;
+          }
+          .${CONSTANTS.CLASS_MODAL_BUTTON} {
+            background: var(--interactive-bg-tertiary-default); color: var(--text-primary);
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius-md, ${CONSTANTS.MODAL_BTN_RADIUS}px);
+            padding: ${CONSTANTS.MODAL_BTN_PADDING}; font-size: ${CONSTANTS.MODAL_BTN_FONT_SIZE}px;
+            cursor: pointer; transition: background 0.12s;
+          }
+          .${CONSTANTS.CLASS_MODAL_BUTTON}:hover {
+            background: var(--interactive-bg-secondary-hover) !important;
+            border-color: var(--border-default) !important;
+          }
+       `;
+    }
 
-    // --- Standardized Modal Implementation ---
-    let cqtbSettingsModal = null;
-    async function saveQuickTextConfig(obj) {
-        await saveConfig(CONFIG_KEY, obj);
-        FIXED_TEXTS_CONFIG = obj;
-        activeCategory = Object.keys(FIXED_TEXTS_CONFIG)[0];
+    // =================================================================================
+    // SECTION: UI Element Creation
+    // =================================================================================
+    function createAndReferenceUIElements() {
+        state.ui.insertBtn = createEl('button', {
+            id: `${CONSTANTS.ID_PREFIX}insert-btn`, textContent: '✎', title: 'Add quick text', type: 'button'
+        });
+        state.ui.settingsBtn = createEl('button', {
+            id: `${CONSTANTS.ID_PREFIX}settings-btn`, textContent: '⚙️', title: 'Settings (ChatGPT Quick Text Buttons)', type: 'button'
+        });
+        state.ui.textList = createEl('div', { id: `${CONSTANTS.ID_PREFIX}text-list` });
+        state.ui.categoryTabs = createEl('div', { id: `${CONSTANTS.ID_PREFIX}category-tabs` });
+        state.ui.categorySeparator = createEl('div', { id: `${CONSTANTS.ID_PREFIX}category-separator` });
+        state.ui.textOptionsContainer = createEl('div', { id: `${CONSTANTS.ID_PREFIX}text-options` });
+        state.ui.textList.append(state.ui.categoryTabs, state.ui.categorySeparator, state.ui.textOptionsContainer);
+
+        state.ui.insertBtn.addEventListener('mouseenter', () => {
+            clearTimeout(state.hideTimeoutId);
+            showTextListBelowButton();
+        });
+        state.ui.insertBtn.addEventListener('mouseleave', () => {
+            state.hideTimeoutId = setTimeout(() => {
+                if (!state.ui.insertBtn.matches(':hover') && !state.ui.textList.matches(':hover')) {
+                    state.ui.textList.style.display = 'none';
+                }
+            }, CONSTANTS.HIDE_DELAY_MS);
+        });
+
+        state.ui.textList.addEventListener('mouseenter', () => {
+            clearTimeout(state.hideTimeoutId);
+        });
+        state.ui.textList.addEventListener('mouseleave', () => {
+            state.hideTimeoutId = setTimeout(() => {
+                if (!state.ui.insertBtn.matches(':hover') && !state.ui.textList.matches(':hover')) {
+                    state.ui.textList.style.display = 'none';
+                }
+            }, CONSTANTS.HIDE_DELAY_MS);
+        });
+
+        state.ui.settingsBtn.onclick = () => {
+            if (state.ui.settingsModalOverlay && state.ui.settingsModalOverlay.parentNode) {
+                state.ui.settingsModalOverlay.remove();
+            }
+            state.ui.settingsModalOverlay = null;
+
+            ensureModalIsSetup();
+
+            if (state.ui.settingsModalOverlay && typeof state.ui.settingsModalOverlay.open === 'function') {
+                state.ui.settingsModalOverlay.open();
+            } else {
+                console.error("CQTB: Failed to create or open settings modal.", state.ui.settingsModalOverlay);
+            }
+        };
+    }
+
+
+    // =================================================================================
+    // SECTION: Settings Modal
+    // =================================================================================
+    async function handleSaveQuickTextConfig(obj) {
+        await saveConfig(CONSTANTS.CONFIG_KEY, obj);
+        state.fixedTextsConfig = obj;
+        state.activeCategory = Object.keys(state.fixedTextsConfig)[0] || null;
         renderCategories();
-        renderTextOptions(activeCategory);
+        if (state.activeCategory) {
+            renderTextOptions(state.activeCategory);
+        }
     }
-    async function getCurrentConfig() {
-        return await loadConfig(CONFIG_KEY, defaultFixedTexts);
+
+    async function handleGetCurrentModalConfig() {
+        return await loadConfig(CONSTANTS.CONFIG_KEY, DEFAULT_FIXED_TEXTS);
     }
-    function setupModalIfNeeded() {
-        if (!cqtbSettingsModal) {
-            cqtbSettingsModal = setupSettingsModal({
-                modalId: 'cqtb-modal',
+
+    function ensureModalIsSetup() {
+        if (!state.ui.settingsModalOverlay) {
+            state.ui.settingsModalOverlay = buildSettingsModal({
+                modalId: CONSTANTS.MODAL_ID,
                 titleText: 'ChatGPT Quick Text Buttons Settings',
-                onSave: saveQuickTextConfig,
-                getCurrentConfig: getCurrentConfig,
-                anchorBtn: settingsBtn
+                onSave: handleSaveQuickTextConfig,
+                getCurrentConfig: handleGetCurrentModalConfig,
+                anchorBtn: state.ui.settingsBtn
             });
         }
     }
 
-    // Modal Functions
-    function setupSettingsModal({ modalId, titleText, onSave, getCurrentConfig, anchorBtn }) {
+    function buildSettingsModal({ modalId, titleText, onSave, getCurrentConfig, anchorBtn }) {
         let modalOverlay = document.getElementById(modalId);
         if (modalOverlay) return modalOverlay;
 
-        // styles for hover (Prevent duplication with ID)
-        if (!document.getElementById('cpta-modal-btn-hover-style')) {
-            const style = document.createElement('style');
-            style.id = 'cpta-modal-btn-hover-style';
-            style.textContent = `
-            #${modalId} button:hover {
-                background: var(--interactive-bg-tertiary-hover) !important;
-                border-color: var(--border-default) !important;
-            }
-        `;
-            document.head.appendChild(style);
-        }
-
-        modalOverlay = document.createElement('div');
+        modalOverlay = createEl('div');
         modalOverlay.id = modalId;
-        modalOverlay.style.display = 'none';
-        modalOverlay.style.position = 'fixed';
-        modalOverlay.style.zIndex = '2147483648';
-        modalOverlay.style.left = '0';
-        modalOverlay.style.top = '0';
-        modalOverlay.style.width = '100vw';
-        modalOverlay.style.height = '100vh';
-        modalOverlay.style.background = 'none';
-        modalOverlay.style.pointerEvents = 'auto';
 
-        // modalBox
-        const modalBox = document.createElement('div');
-        modalBox.style.position = 'absolute';
-        modalBox.style.width = MODAL_WIDTH + 'px';
-        modalBox.style.padding = MODAL_PADDING + 'px';
-        modalBox.style.borderRadius = `var(--radius-lg, ${MODAL_RADIUS}px)`;
-        modalBox.style.background = 'var(--main-surface-primary)';
-        modalBox.style.color = 'var(--text-primary)';
-        modalBox.style.border = '1px solid var(--border-default)';
-        modalBox.style.boxShadow = 'var(--drop-shadow-lg, 0 4px 16px #00000026)';
-        // left/topはopenModal時に決定
+        const modalBox = createEl('div');
+        modalBox.className = CONSTANTS.CLASS_MODAL_BOX;
 
-        // Title
-        const modalTitle = document.createElement('h5');
-        modalTitle.innerText = titleText;
-        modalTitle.style.marginTop = '0';
-        modalTitle.style.marginBottom = MODAL_TITLE_MARGIN_BOTTOM + 'px';
+        const modalTitle = createEl('h5', { innerText: titleText });
+        modalTitle.className = CONSTANTS.CLASS_MODAL_TITLE;
 
-        // Textarea
-        const textarea = document.createElement('textarea');
-        textarea.style.width = '100%';
-        textarea.style.height = MODAL_TEXTAREA_HEIGHT + 'px';
-        textarea.style.boxSizing = 'border-box';
-        textarea.style.fontFamily = 'monospace';
-        textarea.style.fontSize = '13px';
-        textarea.style.marginBottom = '0';
-        textarea.style.border = '1px solid var(--border-default)';
-        textarea.style.background = 'var(--bg-primary)';
-        textarea.style.color = 'var(--text-primary)';
+        const textarea = createEl('textarea', { placeholder: 'Enter settings in JSON format...' });
+        textarea.className = CONSTANTS.CLASS_MODAL_TEXTAREA;
 
-        // error messages
-        const msgDiv = document.createElement('div');
-        msgDiv.style.color = 'var(--text-danger,#f33)';
-        msgDiv.style.marginTop = '2px';
-        msgDiv.style.minHeight = '4px';
+        const msgDiv = createEl('div');
+        msgDiv.className = CONSTANTS.CLASS_MODAL_MSG_DIV;
 
-        // btnGroup
-        const btnGroup = document.createElement('div');
-        btnGroup.style.display = 'flex';
-        btnGroup.style.flexWrap = 'wrap';
-        btnGroup.style.justifyContent = 'flex-end';
-        btnGroup.style.gap = MODAL_BTN_GROUP_GAP + 'px';
-        btnGroup.style.marginTop = '8px';
+        const btnGroup = createEl('div');
+        btnGroup.className = CONSTANTS.CLASS_MODAL_BTN_GROUP;
 
-        // btnExport
-        const btnExport = document.createElement('button');
-        btnExport.type = 'button';
-        btnExport.innerText = 'Export';
-        Object.assign(btnExport.style, {
-            background: 'var(--interactive-bg-tertiary-default)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-default)',
-            borderRadius: `var(--radius-md, ${MODAL_BTN_RADIUS}px)`,
-            padding: MODAL_BTN_PADDING,
-            fontSize: MODAL_BTN_FONT_SIZE + 'px',
-            cursor: 'pointer',
-            transition: 'background 0.12s'
-        });
-
-        // btnImport
-        const btnImport = document.createElement('button');
-        btnImport.type = 'button';
-        btnImport.innerText = 'Import';
-        Object.assign(btnImport.style, {
-            background: 'var(--interactive-bg-tertiary-default)',
-            color: 'var(--text-primary)',
-            border: '1px solid var(--border-default)',
-            borderRadius: `var(--radius-md, ${MODAL_BTN_RADIUS}px)`,
-            padding: MODAL_BTN_PADDING,
-            fontSize: MODAL_BTN_FONT_SIZE + 'px',
-            cursor: 'pointer',
-            transition: 'background 0.12s'
-        });
-
-        // btnSave
-        const btnSave = document.createElement('button');
-        btnSave.type = 'button';
-        btnSave.innerText = 'Save';
-        btnSave.style.background = 'var(--interactive-bg-tertiary-default)';
-        btnSave.style.color = 'var(--text-primary)';
-        btnSave.style.border = '1px solid var(--border-default)';
-        btnSave.style.borderRadius = `var(--radius-md, ${MODAL_BTN_RADIUS}px)`;
-        btnSave.style.padding = MODAL_BTN_PADDING;
-        btnSave.style.fontSize = MODAL_BTN_FONT_SIZE + 'px';
-        btnSave.style.cursor = 'pointer';
-        btnSave.style.transition = 'background 0.12s';
-
-        // btnCancel
-        const btnCancel = document.createElement('button');
-        btnCancel.type = 'button';
-        btnCancel.innerText = 'Cancel';
-        btnCancel.style.background = 'var(--interactive-bg-tertiary-default)';
-        btnCancel.style.color = 'var(--text-primary)';
-        btnCancel.style.border = '1px solid var(--border-default)';
-        btnCancel.style.borderRadius = `var(--radius-md, ${MODAL_BTN_RADIUS}px)`;
-        btnCancel.style.padding = MODAL_BTN_PADDING;
-        btnCancel.style.fontSize = MODAL_BTN_FONT_SIZE + 'px';
-        btnCancel.style.cursor = 'pointer';
-        btnCancel.style.transition = 'background 0.12s';
+        const btnExport = createEl('button', { type: 'button', innerText: 'Export' });
+        btnExport.className = CONSTANTS.CLASS_MODAL_BUTTON;
+        const btnImport = createEl('button', { type: 'button', innerText: 'Import' });
+        btnImport.className = CONSTANTS.CLASS_MODAL_BUTTON;
+        const btnSave = createEl('button', { type: 'button', innerText: 'Save' });
+        btnSave.className = CONSTANTS.CLASS_MODAL_BUTTON;
+        const btnCancel = createEl('button', { type: 'button', innerText: 'Cancel' });
+        btnCancel.className = CONSTANTS.CLASS_MODAL_BUTTON;
 
         btnGroup.append(btnExport, btnImport, btnSave, btnCancel);
         modalBox.append(modalTitle, textarea, btnGroup, msgDiv);
         modalOverlay.appendChild(modalBox);
         document.body.appendChild(modalOverlay);
 
-        // Click to close
-        function closeModal() { modalOverlay.style.display = 'none'; }
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+        }
 
-        // Export (Event Listener)
         btnExport.addEventListener('click', async () => {
             try {
                 const config = await getCurrentConfig();
@@ -367,29 +358,17 @@
                 const filename = 'cqtb_config.json';
                 const blob = new Blob([jsonString], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                msgDiv.textContent = 'Export successful.';
-                msgDiv.style.color = 'var(--text-accent, #66b5ff)';
+                const a = createEl('a', { href: url, download: filename });
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                msgDiv.textContent = 'Export successful.'; msgDiv.style.color = 'var(--text-accent, #66b5ff)';
             } catch (e) {
-                msgDiv.textContent = 'Export failed: ' + e.message;
-                msgDiv.style.color = 'var(--text-danger,#f33)';
+                msgDiv.textContent = 'Export failed: ' + e.message; msgDiv.style.color = 'var(--text-danger,#f33)';
             }
         });
 
-        // Import (Event Listener)
         btnImport.addEventListener('click', () => {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'application/json';
-            fileInput.style.display = 'none';
+            const fileInput = createEl('input', { type: 'file', accept: 'application/json', style: { display: 'none' } });
             document.body.appendChild(fileInput);
-
             fileInput.addEventListener('change', async (event) => {
                 const file = event.target.files[0];
                 if (file) {
@@ -401,123 +380,145 @@
                             msgDiv.textContent = 'Import successful. Click "Save" to apply the themes.';
                             msgDiv.style.color = 'var(--text-accent, #66b5ff)';
                         } catch (err) {
-                            msgDiv.textContent = 'Import failed: ' + err.message;
-                            msgDiv.style.color = 'var(--text-danger,#f33)';
-                        } finally {
-                            document.body.removeChild(fileInput);
-                        }
+                            msgDiv.textContent = 'Import failed: ' + err.message; msgDiv.style.color = 'var(--text-danger,#f33)';
+                        } finally { document.body.removeChild(fileInput); }
                     };
                     reader.readAsText(file);
-                } else {
-                    document.body.removeChild(fileInput);
-                }
+                } else { document.body.removeChild(fileInput); }
             });
-
             fileInput.click();
+            // patch for Chromium browser (scrollbar issue)
+            if (fileInput.parentNode) fileInput.parentNode.removeChild(fileInput);
         });
 
-        // Save (Event Listener)
         btnSave.addEventListener('click', async () => {
             try {
                 const obj = JSON.parse(textarea.value);
                 await onSave(obj);
                 closeModal();
             } catch (e) {
-                msgDiv.textContent = 'JSON parse error: ' + e.message;
-                msgDiv.style.color = 'var(--text-danger,#f33)';
+                msgDiv.textContent = 'JSON parse error: ' + e.message; msgDiv.style.color = 'var(--text-danger,#f33)';
             }
         });
 
-        // Cancel (Event Listener)
         btnCancel.addEventListener('click', closeModal);
-        modalOverlay.addEventListener('mousedown', e => {
-            if (e.target === modalOverlay) closeModal();
-        });
+        modalOverlay.addEventListener('mousedown', e => { if (e.target === modalOverlay) closeModal(); });
 
-        // --- Put it under the button ---
         async function openModal() {
             let cfg = await getCurrentConfig();
             textarea.value = JSON.stringify(cfg, null, 2);
             msgDiv.textContent = '';
-            if (anchorBtn && anchorBtn.getBoundingClientRect) {
-                const btnRect = anchorBtn.getBoundingClientRect();
-                const margin = 8;
-                let left = btnRect.left;
-                let top = btnRect.bottom + 4;
-                // Prevents right edge from protruding
-                if (left + MODAL_WIDTH > window.innerWidth - margin) {
-                    left = window.innerWidth - MODAL_WIDTH - margin;
-                }
-                left = Math.max(left, margin);
-                modalBox.style.left = left + 'px';
-                modalBox.style.top = top + 'px';
-                modalBox.style.transform = '';
-            } else {
-                modalBox.style.left = '50%';
-                modalBox.style.top = '120px';
-                modalBox.style.transform = 'translateX(-50%)';
-            }
-            modalOverlay.style.display = 'block';
+
+            const modalBoxElement = modalOverlay.firstChild;
+
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    if (anchorBtn && typeof anchorBtn.getBoundingClientRect === 'function') {
+                        const btnRect = anchorBtn.getBoundingClientRect();
+                        if (btnRect.width === 0 && btnRect.height === 0 && btnRect.top === 0 && btnRect.left === 0) {
+                            console.error("CQTB Error: Anchor button for modal has no dimensions or is not visible. Modal will use fallback position.", anchorBtn);
+                            modalBoxElement.style.left = '50%';
+                            modalBoxElement.style.top = '120px';
+                            modalBoxElement.style.transform = 'translateX(-50%)';
+                        } else {
+                            const margin = 8;
+                            let left = btnRect.left;
+                            let top = btnRect.bottom + 4;
+
+                            if (left + CONSTANTS.MODAL_WIDTH > window.innerWidth - margin) {
+                                left = window.innerWidth - CONSTANTS.MODAL_WIDTH - margin;
+                            }
+                            left = Math.max(left, margin);
+
+                            const modalHeight = modalBoxElement.offsetHeight || (CONSTANTS.MODAL_TEXTAREA_HEIGHT + 100);
+                            if (top + modalHeight > window.innerHeight - margin) {
+                                top = window.innerHeight - modalHeight - margin;
+                            }
+                            top = Math.max(top, margin);
+
+                            modalBoxElement.style.left = `${left}px`;
+                            modalBoxElement.style.top = `${top}px`;
+                            modalBoxElement.style.transform = '';
+                        }
+                    } else {
+                        console.warn("CQTB: Anchor button not available or not visible for modal positioning. Using fallback.");
+                        modalBoxElement.style.left = '50%';
+                        modalBoxElement.style.top = '120px';
+                        modalBoxElement.style.transform = 'translateX(-50%)';
+                    }
+                    modalOverlay.style.display = 'block';
+                }, CONSTANTS.TEXT_LIST_RENDER_DELAY_MS);
+            });
         }
         modalOverlay.open = openModal;
         modalOverlay.close = closeModal;
         return modalOverlay;
     }
 
-    // --- append UI (SPA support) ---
-    function appendUI() {
-        if (!$('#cqtb-id-insert-btn')) document.body.appendChild(insertBtn);
-        if (!$('#cqtb-id-settings-btn')) document.body.appendChild(settingsBtn);
-        if (!$('#cqtb-id-text-list')) document.body.appendChild(textList);
+    // =================================================================================
+    // SECTION: UI Appending and Rendering
+    // =================================================================================
+    function appendUIElements() {
+        [
+            CONSTANTS.ID_PREFIX + 'insert-btn',
+            CONSTANTS.ID_PREFIX + 'settings-btn',
+            CONSTANTS.ID_PREFIX + 'text-list'
+        ].forEach(id => {
+            const old = document.getElementById(id);
+            if (old) old.remove();
+        });
+        document.body.appendChild(state.ui.insertBtn);
+        document.body.appendChild(state.ui.settingsBtn);
+        document.body.appendChild(state.ui.textList);
     }
 
-    // --- main logic ---
-    let activeCategory = null;
-    function reloadAndRender() {
-        // load from cache
-        if (!FIXED_TEXTS_CONFIG) FIXED_TEXTS_CONFIG = { ...defaultFixedTexts };
-        if (!activeCategory || !FIXED_TEXTS_CONFIG[activeCategory]) {
-            activeCategory = Object.keys(FIXED_TEXTS_CONFIG)[0];
+    function reloadAndRenderUI() {
+        if (!state.fixedTextsConfig) state.fixedTextsConfig = { ...DEFAULT_FIXED_TEXTS };
+        if (!state.activeCategory || !state.fixedTextsConfig[state.activeCategory]) {
+            state.activeCategory = Object.keys(state.fixedTextsConfig)[0] || null;
         }
         renderCategories();
-        renderTextOptions(activeCategory);
+        if(state.activeCategory) renderTextOptions(state.activeCategory);
     }
+
     function renderCategories() {
-        categoryTabs.innerHTML = '';
-        const cats = Object.keys(FIXED_TEXTS_CONFIG);
-        cats.forEach((cat, idx) => {
+        state.ui.categoryTabs.innerHTML = '';
+        const cats = Object.keys(state.fixedTextsConfig);
+        cats.forEach((cat) => {
             const tab = createEl('button', {
-                className: 'cqtb-category-tab' + (cat === activeCategory ? ' active' : ''),
+                className: CONSTANTS.CLASS_CATEGORY_TAB + (cat === state.activeCategory ? ' active' : ''),
                 innerText: cat,
                 type: 'button'
             });
             tab.addEventListener('mousedown', e => {
                 e.stopPropagation();
-                activeCategory = cat;
+                state.activeCategory = cat;
                 renderCategories();
                 renderTextOptions(cat);
             });
-            categoryTabs.appendChild(tab);
+            state.ui.categoryTabs.appendChild(tab);
         });
     }
+
     function renderTextOptions(cat) {
-        textOptions.innerHTML = '';
-        const texts = FIXED_TEXTS_CONFIG[cat] || [];
+        state.ui.textOptionsContainer.innerHTML = '';
+        const texts = state.fixedTextsConfig[cat] || [];
         texts.forEach(txt => {
             const btn = createEl('button', {
-                type: 'button', className: 'cqtb-text-option',
+                type: 'button', className: CONSTANTS.CLASS_TEXT_OPTION,
                 innerText: txt.length > 100 ? txt.slice(0, 100) + "…" : txt,
                 title: txt
             });
             btn.addEventListener('mousedown', e => {
                 e.stopPropagation();
-                insertText(txt);
-                textList.style.display = 'none';
+                insertTextIntoInputElement(txt);
+                state.ui.textList.style.display = 'none';
             });
-            textOptions.appendChild(btn);
+            state.ui.textOptionsContainer.appendChild(btn);
         });
     }
-    function insertText(text) {
+
+    function insertTextIntoInputElement(text) {
         const form = $('form');
         const p = form?.querySelector('div p:last-of-type') ||
               form?.querySelector('[contenteditable="true"]');
@@ -525,93 +526,98 @@
             p.innerText = p.innerText.trim() ? p.innerText + text : text;
             p.focus();
         } else {
+            console.error('CQTB: Input box (p element) not found.', { form });
             alert('Input box (p element) not found.');
         }
     }
 
-    // --- place Quick Text Window ---
+    // =================================================================================
+    // SECTION: Text List Display Logic
+    // =================================================================================
     function showTextListBelowButton() {
-        textList.style.display = 'block';
-        textList.style.left = '-9999px';
-        textList.style.top = '0px';
-        setTimeout(() => {
-            const btnRect = insertBtn.getBoundingClientRect();
-            const winWidth = textList.offsetWidth || textListWidth;
-            let left, top;
-            const margin = 8;
-            if (textListAlign === "center") {
-                const centerX = btnRect.left + (btnRect.width / 2);
-                left = centerX - (winWidth / 2);
-                left = Math.max(left, margin);
-                top = btnRect.bottom + 4;
-            } else if (textListAlign === "left") {
-                left = btnRect.left;
-                top = btnRect.bottom + 4;
+        if (!state.ui.insertBtn || !state.ui.textList) {
+            console.error('CQTB: UI Node Reference Error（insertBtn/textList）', state.ui);
+            return;
+        }
+        state.ui.textList.style.display = 'block';
+        state.ui.textList.style.left = '-9999px';
+        state.ui.textList.style.top = '0px';
+
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                if (!state.ui.insertBtn || !state.ui.textList || state.ui.textList.style.display === 'none') return;
+
+                const btnRect = state.ui.insertBtn.getBoundingClientRect();
+                if (btnRect.width === 0 && btnRect.height === 0 && btnRect.top === 0 && btnRect.left === 0) {
+                    state.ui.textList.style.display = 'none';
+                    return;
+                }
+
+                const winWidth = state.ui.textList.offsetWidth || CONSTANTS.TEXT_LIST_WIDTH;
+                const margin = 8;
+                let left = btnRect.left;
+                let top = btnRect.bottom + 4;
+
                 if (left + winWidth > window.innerWidth - margin) {
                     left = window.innerWidth - winWidth - margin;
                 }
                 left = Math.max(left, margin);
-            } else if (textListAlign === "custom") {
-                left = customPosition.left;
-                top = customPosition.top;
-            } else {
-                left = btnRect.left;
-                top = btnRect.bottom + 4;
-            }
-            textList.style.left = `${left}px`;
-            textList.style.top = `${top}px`;
-        }, 1);
+
+                const listHeight = state.ui.textList.offsetHeight;
+                if (listHeight > 0 && top + listHeight > window.innerHeight - margin) {
+                    top = Math.max(margin, window.innerHeight - listHeight - margin);
+                    if (top < btnRect.top) {
+                        top = Math.max(margin, btnRect.top - listHeight - 4);
+                    }
+                }
+                top = Math.max(top, margin);
+
+                state.ui.textList.style.left = `${left}px`;
+                state.ui.textList.style.top = `${top}px`;
+            }, CONSTANTS.TEXT_LIST_RENDER_DELAY_MS);
+        });
     }
 
-    // --- Hover/leave logic ---
-    let hideTimeout;
-    insertBtn.addEventListener('mouseenter', () => {
-        clearTimeout(hideTimeout);
-        showTextListBelowButton();
-    });
-    insertBtn.addEventListener('mouseleave', () => {
-        hideTimeout = setTimeout(() => {
-            if (!textList.matches(':hover')) textList.style.display = 'none';
-        }, 250);
-    });
-    textList.addEventListener('mouseleave', () => {
-        textList.style.display = 'none';
-    });
-    textList.addEventListener('mouseenter', () => {
-        clearTimeout(hideTimeout);
-    });
+    // =================================================================================
+    // SECTION: Initialization and SPA Handling
+    // =================================================================================
+    async function initializeScript() {
+        createAndReferenceUIElements();
+        appendUIElements();
+        initializeAndApplyStyles();
 
-    // --- Open settings ---
-    settingsBtn.onclick = () => {
-        setupModalIfNeeded();
-        cqtbSettingsModal.open();
-    };
-
-    // --- INIT ---
-    async function initUI() {
-        appendUI();
-        FIXED_TEXTS_CONFIG = await loadConfig(CONFIG_KEY, defaultFixedTexts);
-        reloadAndRender();
-        textList.style.display = 'none';
+        state.fixedTextsConfig = await loadConfig(CONSTANTS.CONFIG_KEY, DEFAULT_FIXED_TEXTS);
+        reloadAndRenderUI();
+        state.ui.textList.style.display = 'none';
     }
-    function setupSPAandObserver() {
-        window.addEventListener('load', initUI);
+
+    function setupSPAObserver() {
+        window.addEventListener('load', initializeScript);
         ['pushState', 'replaceState'].forEach(fn => {
             const orig = history[fn];
             history[fn] = function (...args) {
                 orig.apply(this, args);
-                setTimeout(initUI, 200);
+                setTimeout(initializeScript, CONSTANTS.SPA_REINIT_DELAY_MS);
             };
         });
-        window.addEventListener('popstate', () => setTimeout(initUI, 200));
-        const observer = new MutationObserver(() => {
-            if (!$('#cqtb-id-insert-btn')) initUI();
+        window.addEventListener('popstate', () => setTimeout(initializeScript, CONSTANTS.SPA_REINIT_DELAY_MS));
+
+        state.domObserver = new MutationObserver(() => {
+            if (
+                !document.getElementById(`${CONSTANTS.ID_PREFIX}insert-btn`) ||
+                !document.getElementById(`${CONSTANTS.ID_PREFIX}settings-btn`)
+            ) {
+                initializeScript();
+            }
         });
-        observer.observe(document.body, { childList: true, subtree: false });
+
+        state.domObserver.observe(document.body, { childList: true, subtree: false });
     }
 
-    // ---- Entry point ----
-    setupSPAandObserver();
-    initUI();
+    // =================================================================================
+    // SECTION: Entry Point
+    // =================================================================================
+    setupSPAObserver();
+    initializeScript();
 
 })();
