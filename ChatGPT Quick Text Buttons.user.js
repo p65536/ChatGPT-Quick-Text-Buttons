@@ -367,7 +367,10 @@
         });
 
         btnImport.addEventListener('click', () => {
-            const fileInput = createEl('input', { type: 'file', accept: 'application/json', style: { display: 'none' } });
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'application/json';
+            fileInput.style.display = 'none';
             document.body.appendChild(fileInput);
             fileInput.addEventListener('change', async (event) => {
                 const file = event.target.files[0];
@@ -380,15 +383,18 @@
                             msgDiv.textContent = 'Import successful. Click "Save" to apply the themes.';
                             msgDiv.style.color = 'var(--text-accent, #66b5ff)';
                         } catch (err) {
-                            msgDiv.textContent = 'Import failed: ' + err.message; msgDiv.style.color = 'var(--text-danger,#f33)';
-                        } finally { document.body.removeChild(fileInput); }
+                            msgDiv.textContent = 'Import failed: ' + err.message;
+                            msgDiv.style.color = 'var(--text-danger,#f33)';
+                        } finally {
+                            document.body.removeChild(fileInput);
+                        }
                     };
                     reader.readAsText(file);
-                } else { document.body.removeChild(fileInput); }
+                } else {
+                    document.body.removeChild(fileInput);
+                }
             });
             fileInput.click();
-            // patch for Chromium browser (scrollbar issue)
-            if (fileInput.parentNode) fileInput.parentNode.removeChild(fileInput);
         });
 
         btnSave.addEventListener('click', async () => {
