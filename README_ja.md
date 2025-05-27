@@ -7,6 +7,10 @@
 
 [![Download](https://img.shields.io/badge/Download-ChatGPT_Quick_Text_Buttons.user.js-blue?style=flat-square&logo=download)](https://github.com/p65536/ChatGPT-Quick-Text-Buttons/raw/main/ChatGPT%20Quick%20Text%20Buttons.user.js)
 
+![version](https://img.shields.io/badge/version-1.0.0-blue)  
+最終更新日: **2025年5月27日**  
+[変更履歴はこちら](./CHANGELOG.md)
+
 [English README is here.](./README.md)
 
 ---
@@ -15,9 +19,13 @@
 
 ChatGPTのチャット画面に「定型文クイック挿入ボタン」を追加する Tampermonkey 用ユーザースクリプトです。
 
+  >### 関連スクリプト
+  >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)** (現時点ではプライベートレポジトリです)  
+  ChatGPTの見た目やテーマをカスタマイズできるスクリプトです。吹き出しの色・形・フォント、背景画像などを自由に変更できます。
+
 ---
 
-## 特徴
+## 特徴 
 
 * 定型文（テキストスニペット）をワンクリックで入力欄に挿入
 * 用途ごとに複数のボタンセットを切り替え可能
@@ -125,6 +133,12 @@ jsonの基本構造は以下の通りです。
 
 ---
 
+## 変更履歴
+
+変更内容の詳細については [`CHANGELOG.md`](./CHANGELOG.md) を参照してください。
+
+---
+
 ## ライセンス
 
 MIT License
@@ -136,3 +150,25 @@ MIT License
 * [p65536](https://github.com/p65536)
 
 ---
+
+## 既知の問題
+
+* 設定モーダルが一部のブラウザ環境で想定外の挙動をすることがある  
+  ↳ 暫定対処済み。
+
+
+## 今後の予定
+
+### 優先的に検討中の項目（作者が実装したいと考えている）
+
+* カテゴリ数増加に備えて、現在のタブ型のほかにリスト形式も設定可能とする。タブ数が少ない場合はタブ型のほうが選択しやすいため、どちらの設定にするかはユーザーが選択可能とする。
+* カテゴリ内のテキスト数増加に備えて、スクロール対応（今は画面の高さを超えると、はみ出たテキストを選択できない。自分は1カテゴリ5テキストくらいで使っているから実害はないが……）
+
+### 検討はしているが、現状では必要性を感じていない項目
+
+* 設定画面のGUI化（JSON編集でよくね？）
+* スクリプトの自動更新（安定版をユーザーが選択できる方がよい）
+* クラウド経由での設定同期（export/importによるローカル管理で十分）
+* テキストボタンの並び順をドラッグで変更できる機能（JSON編集でよくね？）
+* テキスト挿入位置をカーソル位置にする（うーん……）
+* クリップボードの内容を自動展開する（自分では使わないと思う）

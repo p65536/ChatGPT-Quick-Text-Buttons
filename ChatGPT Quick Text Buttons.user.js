@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ChatGPT Quick Text Buttons
 // @namespace    https://github.com/p65536
-// @version      1.0
+// @version      1.0.0
 // @license      MIT
 // @description  Adds customizable buttons to paste predefined text into the ChatGPT input field.
 // @author       p65536
