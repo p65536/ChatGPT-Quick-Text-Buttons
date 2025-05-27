@@ -9,7 +9,7 @@
 
 ![version](https://img.shields.io/badge/version-1.0.0-blue)  
 最終更新日: **2025年5月27日**  
-[変更履歴はこちら](./CHANGELOG.md)
+[変更履歴はこちら](./CHANGELOG_ja.md)
 
 [English README is here.](./README.md)
 
