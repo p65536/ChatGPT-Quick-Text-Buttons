@@ -135,7 +135,7 @@ jsonの基本構造は以下の通りです。
 
 ## 変更履歴
 
-変更内容の詳細については [`CHANGELOG.md`](./CHANGELOG.md) を参照してください。
+変更内容の詳細については [`CHANGELOG_ja.md`](./CHANGELOG_ja.md) を参照してください。
 
 ---
 
