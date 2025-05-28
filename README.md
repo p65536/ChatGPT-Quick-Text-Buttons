@@ -23,7 +23,6 @@ A Tampermonkey userscript that adds **quick text snippet buttons** to the ChatGP
   >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)**  
   >A userscript that allows you to customize the appearance and theme of ChatGPT, including bubble colors, shapes, fonts, and background images.
 
-
 ---
 
 ## Features
