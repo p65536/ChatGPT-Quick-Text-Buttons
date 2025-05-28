@@ -8,7 +8,7 @@
 [![Download](https://img.shields.io/badge/Download-ChatGPT_Quick_Text_Buttons.user.js-blue?style=flat-square&logo=download)](https://github.com/p65536/ChatGPT-Quick-Text-Buttons/raw/main/ChatGPT%20Quick%20Text%20Buttons.user.js)
 
 ![version](https://img.shields.io/badge/version-1.0.0-blue)  
-Last updated: **May 27, 2025**  
+Last updated: **2025/05/27**  
 [View changelog](./CHANGELOG.md)
 
 [日本語READMEはこちら](./README_ja.md)
@@ -20,7 +20,7 @@ Last updated: **May 27, 2025**
 A Tampermonkey userscript that adds **quick text snippet buttons** to the ChatGPT chat interface.
 
   >### Related Script  
-  >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)** *(currently a private repository)*  
+  >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)**  
   >A userscript that allows you to customize the appearance and theme of ChatGPT, including bubble colors, shapes, fonts, and background images.
 
 
@@ -161,14 +161,14 @@ MIT License
 
 ## Future Plans
 
-### Actively considered (features the author intends to implement)
+### Planned Features
 
 * Add an option to switch from the current tab-based layout to a list-style layout, to accommodate a larger number of categories.  
   → Tabs are easier to navigate when categories are few, so users will be able to choose their preferred layout.
 * Add scroll support within each category when the number of texts exceeds the viewport height.  
   → Currently, overflowing texts become inaccessible. Personally, I only use around 5 texts per category, so it's not been an issue yet.
 
-### Considered but currently deemed unnecessary
+### Ideas Under Consideration (not planned)
 
 * GUI-based settings editor (Honestly, editing JSON is good enough.)
 * Script auto-update (Allowing users to stick with a stable version is better.)

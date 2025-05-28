@@ -20,7 +20,7 @@
 ChatGPTのチャット画面に「定型文クイック挿入ボタン」を追加する Tampermonkey 用ユーザースクリプトです。
 
   >### 関連スクリプト
-  >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)** (現時点ではプライベートレポジトリです)  
+  >**[ChatGPT Project Theme Automator](https://github.com/p65536/ChatGPT-Project-Theme-Automator)**  
   ChatGPTの見た目やテーマをカスタマイズできるスクリプトです。吹き出しの色・形・フォント、背景画像などを自由に変更できます。
 
 ---
