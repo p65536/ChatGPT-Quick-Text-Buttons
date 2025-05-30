@@ -128,8 +128,9 @@ Refer to the [`samples`](./samples) directory for ready-to-use examples.
 
 ## Notes
 
-* **There is no auto-update.**
-  When a new version is released, please manually replace the script.
+* This script does not include a built-in auto-update mechanism. However, it is also published on [Greasy Fork](https://greasyfork.org/ja/scripts/537694-chatgpt-quick-text-buttons).  
+  If you want the script to update automatically, please install it from Greasy Fork.  
+  If you prefer to manage updates manually, simply replace the script file yourself when a new version is released.
 
 ---
 
@@ -170,7 +171,6 @@ MIT License
 ### Ideas Under Consideration (not planned)
 
 * GUI-based settings editor (Honestly, editing JSON is good enough.)
-* Script auto-update (Allowing users to stick with a stable version is better.)
 * Cloud-based setting sync (Local management via export/import works fine.)
 * Drag-and-drop to reorder buttons (Again, JSON editing suffices.)
 * Insert text at the cursor position instead of the end (Hmm... undecided.)
