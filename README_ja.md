@@ -7,8 +7,8 @@
 
 [![Download](https://img.shields.io/badge/Download-ChatGPT_Quick_Text_Buttons.user.js-blue?style=flat-square&logo=download)](https://github.com/p65536/ChatGPT-Quick-Text-Buttons/raw/main/ChatGPT%20Quick%20Text%20Buttons.user.js)
 
-![version](https://img.shields.io/badge/version-1.0.0-blue)  
-最終更新日: **2025年5月27日**  
+![version](https://img.shields.io/badge/version-1.1.0-blue)  
+最終更新日: **2025/07/05**  
 [変更履歴はこちら](./CHANGELOG_ja.md)
 
 [English README is here.](./README.md)
